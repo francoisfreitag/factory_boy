@@ -1823,71 +1823,37 @@ Once the factory instance has been generated, the method specified in
 with any arguments specified in the :class:`PostGenerationMethodCall` declaration, by
 default.
 
-For example, to set a default password on a generated User instance
-during instantiation, we could make a declaration for a ``password``
-attribute like below:
+For example, to call the ``distance_from(point)`` method to measure the
+distance of the center to a given point:
 
 .. code-block:: python
 
-    class UserFactory(factory.Factory):
+    class CircleFactory(factory.Factory):
         class Meta:
-            model = User
+            model = Circle
 
-        username = 'user'
-        password = factory.PostGenerationMethodCall('set_password',
-                                                    'defaultpassword')
+        center = Point(3, 4)
+        radius = 1
 
-When we instantiate a user from the ``UserFactory``, the factory
-will create a password attribute by calling ``User.set_password('defaultpassword')``.
-Thus, by default, our users will have a password set to ``'defaultpassword'``.
-
-.. code-block:: pycon
-
-    >>> u = UserFactory()                             # Calls user.set_password('defaultpassword')
-    >>> u.check_password('defaultpassword')
-    True
+        distance_from_origin = PostGenerationMethodCall(
+            'distance_from',
+            Point(0, 0),
+        )
 
 If the :class:`PostGenerationMethodCall` declaration contained no
 arguments or one argument, an overriding value can be passed
 directly to the method through a keyword argument matching the attribute name.
-For example we can override the default password specified in the declaration
-above by simply passing in the desired password as a keyword argument to the
+For example we can override the origin specified in the declaration
+above by simply passing in the desired origin type as a keyword argument to the
 factory during instantiation.
 
 .. code-block:: pycon
 
-    >>> other_u = UserFactory(password='different')   # Calls user.set_password('different')
-    >>> other_u.check_password('defaultpassword')
-    False
-    >>> other_u.check_password('different')
-    True
-
-.. note::
-
-    For Django models, unless the object method called by
-    :class:`PostGenerationMethodCall` saves the object back to the
-    database, we will have to explicitly remember to save the object back
-    if we performed a ``create()``.
-
-    .. code-block:: pycon
-
-        >>> u = UserFactory.create()  # u.password has not been saved back to the database
-        >>> u.save()                  # we must remember to do it ourselves
-
-
-    We can avoid this by subclassing from :class:`DjangoModelFactory`,
-    instead, e.g.,
-
-    .. code-block:: python
-
-        class UserFactory(factory.django.DjangoModelFactory):
-            class Meta:
-                model = User
-
-            username = 'user'
-            password = factory.PostGenerationMethodCall('set_password',
-                                                        'defaultpassword')
-
+    >>> circle = CircleFactory(origin=Point(3, 4))   # Calls circle.distance_from(Point(3, 4))
+    >>> circle.distance_from(Point(0, 0))
+    5
+    >>> circle.distance_from(Point(3, 4))
+    0
 
 .. warning:: In order to keep a consistent and simple API, a :class:`PostGenerationMethodCall`
              allows *at most one* positional argument; all other parameters should be passed as
@@ -1898,7 +1864,7 @@ defaults present in the :class:`PostGenerationMethodCall` declaration.
 
 .. code-block:: pycon
 
-    >>> UserFactory(password__disabled=True)    # Calls user.set_password('', 'sha1', disabled=True)
+    >>> CircleFactory(distance_from_origin__distance_func='manhattan')    # Calls circle.distance_from(Point(0, 0), distance_func='manhattan')
 
 
 Module-level functions

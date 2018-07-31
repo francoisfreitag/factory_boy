@@ -1,10 +1,15 @@
 ChangeLog
 =========
 
-2.11.2 (unreleased)
+3.0.0 (unreleased)
 -------------------
 
-- Nothing changed yet.
+
+*New:*
+
+- :issue:`366`: Added :class:`factory.django.Password` for a more efficient password field generation. New usage
+  documented :ref:`todo-ff`.
+- :issue:`316`: :class:`~factory.Django.DjangoModelFactory` no longer calls ``.save()`` on the created instance.
 
 
 2.11.1 (2018-05-05)

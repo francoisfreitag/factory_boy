@@ -14,6 +14,7 @@ import functools
 try:
     import django
     from django.core import files as django_files
+    from django.contrib.auth.hashers import make_password
 except ImportError as e:  # pragma: no cover
     django = None
     django_files = None
@@ -33,7 +34,7 @@ DEFAULT_DB_ALIAS = 'default'  # Same as django.db.DEFAULT_DB_ALIAS
 
 def require_django():
     """Simple helper to ensure Django is available."""
-    if django_files is None:  # pragma: no cover
+    if django is None:  # pragma: no cover
         raise import_failure
 
 
@@ -164,12 +165,17 @@ class DjangoModelFactory(base.Factory):
 
         return manager.create(*args, **kwargs)
 
-    @classmethod
-    def _after_postgeneration(cls, instance, create, results=None):
-        """Save again the instance if creating and at least one hook ran."""
-        if create and results:
-            # Some post-generation hooks ran, and may have modified us.
-            instance.save()
+
+class Password(declarations.TransformedAttribute):
+    # password needs to be hashed before the call to _create.
+    def __init__(self, password, *args, **kwargs):
+        require_django()
+        super(Password, self).__init__(
+            make_password,
+            function_args=[password],
+            *args,
+            **kwargs,
+        )
 
 
 class FileField(declarations.ParameteredAttribute):

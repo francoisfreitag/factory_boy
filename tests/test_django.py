@@ -15,6 +15,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tests.djapp.settings')
 django.setup()
 from django import test as django_test
 from django.conf import settings
+from django.contrib.auth.hashers import check_password  # noqa: E402
 from django.db import models as django_models
 from django.test.runner import DiscoverRunner as DjangoTestSuiteRunner
 from django.test import utils as django_test_utils
@@ -115,20 +116,28 @@ class ConcreteGrandSonFactory(AbstractBaseFactory):
         model = models.ConcreteGrandSon
 
 
+PASSWORD = 's0_s3cr3t'
+
+
+class WithPasswordFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.WithPassword
+
+    pw = factory.django.Password(password=PASSWORD)
+
+
 class WithFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.WithFile
 
-    if django is not None:
-        afile = factory.django.FileField()
+    afile = factory.django.FileField()
 
 
 class WithImageFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.WithImage
 
-    if django is not None:
-        animage = factory.django.ImageField()
+    animage = factory.django.ImageField()
 
 
 class WithSignalsFactory(factory.django.DjangoModelFactory):
@@ -442,6 +451,32 @@ class DjangoRelatedFieldTestCase(django_test.TestCase):
         self.assertEqual(pointed.foo, 'foo')
         self.assertEqual(pointed.pointer, models.PointerModel.objects.get())
         self.assertEqual(pointed.pointer.bar, 'extra_new_bar')
+
+
+class DjangoPasswordTestCase(django_test.TestCase):
+    def test_default_build(self):
+        u = WithPasswordFactory.build()
+        self.assertTrue(check_password(PASSWORD, u.pw))
+
+    def test_build_kwargs_password(self):
+        password = 'V3R¥.S€C®€T'
+        u = WithPasswordFactory.build(pw=password)
+        self.assertTrue(check_password(password, u.pw))
+
+    def test_default_create(self):
+        u = WithPasswordFactory.create()
+        self.assertTrue(check_password(PASSWORD, u.pw))
+
+    def test_non_string_raises(self):
+        with self.assertRaisesMessage(
+            ValueError,
+            u"'password' must be a unicode string.",
+        ):
+            class WithPasswordFactory(factory.django.DjangoModelFactory):
+                class Meta:
+                    model = models.WithPassword
+
+                pw = factory.django.Password(None)
 
 
 class DjangoFileFieldTestCase(unittest.TestCase):

@@ -178,6 +178,9 @@ def parse_declarations(decls, base_pre=None, base_post=None):
             # Set it as `key__`
             magic_key = post_declarations.join(k, '')
             extra_post[magic_key] = v
+        elif (k in pre_declarations and
+              isinstance(pre_declarations[k], declarations.TransformedAttribute)):
+            extra_maybenonpost[k] = k.function(v)
         else:
             extra_maybenonpost[k] = v
 
@@ -316,7 +319,7 @@ class Resolver(object):
     Attributes are set at instantiation time, values are computed lazily.
 
     Attributes:
-        __initialized (bool): whether this object's __init__ as run. If set,
+        __initialized (bool): whether this object's __init__ has run. If set,
             setting any attribute will be prevented.
         __declarations (dict): maps attribute name to their declaration
         __values (dict): maps attribute name to computed value

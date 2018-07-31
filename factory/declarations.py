@@ -63,17 +63,18 @@ class LazyFunction(BaseDeclaration):
     """Simplest BaseDeclaration computed by calling the given function.
 
     Attributes:
-        function (function): a function without arguments and
-            returning the computed value.
+        function (function): returns the computed value.
     """
 
-    def __init__(self, function, *args, **kwargs):
+    def __init__(self, function, *args, function_args=(), function_kwargs=None, **kwargs):
         super(LazyFunction, self).__init__(*args, **kwargs)
         self.function = function
+        self.args = function_args
+        self.kwargs = function_kwargs or {}
 
     def evaluate(self, instance, step, extra):
         logger.debug("LazyFunction: Evaluating %s on %s", utils.log_repr(self.function), utils.log_repr(step))
-        return self.function()
+        return self.function(*self.args, **self.kwargs)
 
 
 class LazyAttribute(BaseDeclaration):
@@ -91,6 +92,11 @@ class LazyAttribute(BaseDeclaration):
     def evaluate(self, instance, step, extra):
         logger.debug("LazyAttribute: Evaluating %s on %s", utils.log_repr(self.function), utils.log_repr(instance))
         return self.function(instance)
+
+
+class TransformedAttribute(LazyFunction):
+    """Declaration g
+    """
 
 
 class _UNSPECIFIED(object):
@@ -327,10 +333,7 @@ class ParameteredAttribute(BaseDeclaration):
         """Actually generate the related attribute.
 
         Args:
-            sequence (int): the current sequence number
-            obj (LazyStub): the object being constructed
-            create (bool): whether the calling factory was in 'create' or
-                'build' mode
+            step (BuildStep): building context
             params (dict): parameters inherited from init and evaluation-time
                 overrides.
 
