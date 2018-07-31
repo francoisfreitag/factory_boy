@@ -9,6 +9,7 @@ import io
 import logging
 import os
 
+from django.contrib.auth.hashers import make_password
 from django.core import files as django_files
 from django.db import IntegrityError
 
@@ -165,12 +166,10 @@ class DjangoModelFactory(base.Factory):
         manager = cls._get_manager(model_class)
         return manager.create(*args, **kwargs)
 
-    @classmethod
-    def _after_postgeneration(cls, instance, create, results=None):
-        """Save again the instance if creating and at least one hook ran."""
-        if create and results:
-            # Some post-generation hooks ran, and may have modified us.
-            instance.save()
+
+class Password(declarations.Transformer):
+    def __init__(self, password, *args, **kwargs):
+        super().__init__(make_password, password, *args, **kwargs)
 
 
 class FileField(declarations.ParameteredDeclaration):

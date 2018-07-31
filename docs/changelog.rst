@@ -4,6 +4,22 @@ ChangeLog
 4.0.0 (unreleased)
 ------------------
 
+Breaking changes
+""""""""""""""""
+
+:class:`~factory.django.DjangoModelFactory` no longer issues a second call to :meth:`~django.db.models.Model.save` on
+the created instance when :ref:`post-generation-hooks` return a value. Save the model instance in the
+:class:`~factory.PostGeneration` hooks, or override :meth:`factory.django.DjangoModelFactory._after_postgeneration` to
+retain the previous behavior.
+
+*New:*
+
+    - :issue:`316`: :class:`~factory.django.DjangoModelFactory` no longer calls :meth:`~django.db.models.Model.save()`
+      after :ref:`post-generation-hooks`.
+
+    - :issue:`366`: Add :class:`factory.django.Password` to generate Django :class:`~django.contrib.auth.models.User`
+      passwords.
+
 *Removed:*
 
     - :func:`factory.use_strategy()`
@@ -18,6 +34,7 @@ ChangeLog
       one-- and preferably only one --obvious way to do it.*
 
       :func:`~factory.use_strategy()` will be removed in the next major version.
+
 
 3.1.1 (unreleased)
 ------------------
