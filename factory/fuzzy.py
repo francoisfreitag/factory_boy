@@ -13,6 +13,7 @@ import warnings
 
 from . import compat
 from . import declarations
+from . import faker
 from . import random
 
 random_seed_warning = (
@@ -134,22 +135,24 @@ class FuzzyChoice(BaseFuzzyAttribute):
         return self.getter(value)
 
 
-class FuzzyInteger(BaseFuzzyAttribute):
+class FuzzyInteger(faker.Faker):
     """Random integer within a given range."""
 
     def __init__(self, low, high=None, step=1, **kwargs):
         if high is None:
+            warnings.warn(
+                "Interpreting the only argument as the upper bound is deprecated. "
+                "Use call FuzzyInteger(high=value).",
+                DeprecationWarning,
+                stacklevel=2
+            )
             high = low
             low = 0
 
         self.low = low
         self.high = high
         self.step = step
-
-        super(FuzzyInteger, self).__init__(**kwargs)
-
-    def fuzz(self):
-        return random.randgen.randrange(self.low, self.high + 1, self.step)
+        super(FuzzyInteger, self).__init__("pyint", min_value=low, max_value=high, step=step, **kwargs)
 
 
 class FuzzyDecimal(BaseFuzzyAttribute):

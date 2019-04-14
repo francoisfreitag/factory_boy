@@ -96,36 +96,6 @@ class FuzzyIntegerTestCase(unittest.TestCase):
             res = utils.evaluate_declaration(fuzz)
             self.assertIn(res, [0, 1, 2, 3, 4])
 
-    def test_biased(self):
-        fake_randrange = lambda low, high, step: (low + high) * step
-
-        fuzz = fuzzy.FuzzyInteger(2, 8)
-
-        with mock.patch('factory.random.randgen.randrange', fake_randrange):
-            res = utils.evaluate_declaration(fuzz)
-
-        self.assertEqual((2 + 8 + 1) * 1, res)
-
-    def test_biased_high_only(self):
-        fake_randrange = lambda low, high, step: (low + high) * step
-
-        fuzz = fuzzy.FuzzyInteger(8)
-
-        with mock.patch('factory.random.randgen.randrange', fake_randrange):
-            res = utils.evaluate_declaration(fuzz)
-
-        self.assertEqual((0 + 8 + 1) * 1, res)
-
-    def test_biased_with_step(self):
-        fake_randrange = lambda low, high, step: (low + high) * step
-
-        fuzz = fuzzy.FuzzyInteger(5, 8, 3)
-
-        with mock.patch('factory.random.randgen.randrange', fake_randrange):
-            res = utils.evaluate_declaration(fuzz)
-
-        self.assertEqual((5 + 8 + 1) * 3, res)
-
 
 class FuzzyDecimalTestCase(unittest.TestCase):
     def test_definition(self):
@@ -649,6 +619,16 @@ class FuzzyRandomTestCase(unittest.TestCase):
             self.assertIn('factory_boy/issues/331', str(w[-1].message))
 
     def test_reset_state(self):
+        fuzz = fuzzy.FuzzyFloat(1.0, 1000.0)
+
+        state = random.get_random_state()
+        value = utils.evaluate_declaration(fuzz)
+
+        random.set_random_state(state)
+        value2 = utils.evaluate_declaration(fuzz)
+        self.assertEqual(value, value2)
+
+    def test_reset_state_faker(self):
         fuzz = fuzzy.FuzzyInteger(1, 1000)
 
         state = random.get_random_state()
