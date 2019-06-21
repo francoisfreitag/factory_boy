@@ -62,6 +62,13 @@ class StandardFactory(factory.django.DjangoModelFactory):
     foo = factory.Sequence(lambda n: "foo%d" % n)
 
 
+class StandardIteratorFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.StandardModel
+
+    foo = factory.Iterator(["Python", "Node", "Ruby"])
+
+
 class StandardFactoryWithPKField(factory.django.DjangoModelFactory):
     class Meta:
         model = models.StandardModel
@@ -164,6 +171,14 @@ class ModelTests(django_test.TestCase):
         obj = OtherDBFactory()
         self.assertFalse(models.StandardModel.objects.exists())
         self.assertEqual(obj, models.StandardModel.objects.using('replica').get())
+
+
+class IteratorTest(django_test.TestCase):
+    def test_iterator(self):
+        for _ in range(10):
+            print(StandardIteratorFactory.create().id)
+
+        self.assertEqual(models.StandardModel.objects.count(), 10)
 
 
 class DjangoPkSequenceTestCase(django_test.TestCase):
