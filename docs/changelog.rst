@@ -35,6 +35,22 @@ retain the previous behavior.
 
       :func:`~factory.use_strategy()` will be removed in the next major version.
 
+    - :class:`factory.django.DjangoModelFactory._after_postgeneration` raises a :class:`DeprecationWarning` when
+      calling :meth:`~django.db.models.Model.save`. :meth:`~django.db.models.Model.save` will no longer be called in
+      the next major version of Factory Boy.
+
+      Inspect your :class:`~factory.django.DjangoModelFactory` subclasses:
+
+      - If the :meth:`~django.db.models.Model.save` call is not needed after :class:`~factory.PostGeneration`, set
+        :attr:`~factory.django.DjangoOptions.skip_postgeneration_save` to ``True``.
+      - Otherwise, the instance has been modified by :class:`~factory.PostGeneration` hooks and needs to be
+        :meth:`~django.db.models.Model.save`\ d. Either:
+
+          - call :meth:`django.db.models.Model.save` in the :class:`~factory.PostGeneration` hook that modifies the
+            instance, or
+          - override :class:`~factory.django.DjangoModelFactory._after_postgeneration` to
+            :meth:`~django.db.models.Model.save` the instance.
+
 
 3.1.1 (unreleased)
 ------------------
